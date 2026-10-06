@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Laboratorio 4 - Gerencia de Recursos de Tecnología de Información y Comunicación" />
+  <title>Laboratorio 4 · GRTIC</title>
+
+  <style>
+    :root{
+      --black:#1d1d1f;
+      --muted:#6e6e73;
+      --soft:#f5f5f7;
+      --line:#d2d2d7;
+      --white:#ffffff;
+      --blue:#0071e3;
+      --blue-hover:#0077ed;
+      --dark:#000000;
+      --radius:32px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      color:var(--black);
+      background:#fff;
+      overflow-x:hidden;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    ::selection{background:#0071e3;color:#fff}
+
+    #progress{
+      position:fixed;inset:0 auto auto 0;height:2px;width:0;z-index:100;
+      background:var(--blue);
+    }
+
+    .site-nav{
+      position:fixed;top:0;left:0;right:0;z-index:80;
+      height:72px;
+      padding-top:0;
+      pointer-events:none;
+    }
+
+    .site-nav .nav-inner{
+      pointer-events:auto;
+      transition:
+        max-width .38s cubic-bezier(.2,.7,.2,1),
+        margin-top .38s cubic-bezier(.2,.7,.2,1),
+        background .28s ease,
+        border-color .28s ease,
+        box-shadow .28s ease,
+        backdrop-filter .28s ease,
+        -webkit-backdrop-filter .28s ease;
+    }
+
+    .site-nav.scrolled .nav-inner{
+      max-width:940px;
+      margin-top:12px;
+      background:rgba(255,255,255,.62);
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:999px;
+      box-shadow:0 12px 36px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.72);
+      backdrop-filter:saturate(180%) blur(22px);
+      -webkit-backdrop-filter:saturate(180%) blur(22px);
+    }
+
+    .site-nav.scrolled .nav-link{color:rgba(29,29,31,.72)}
+    .site-nav.scrolled .nav-link:hover,
+    .site-nav.scrolled .nav-link.active{color:#000}
+
+    .nav-link{color:#444;transition:color .22s ease,transform .22s ease;position:relative;z-index:2}
+    .nav-link:hover,.nav-link.active{color:#000}
+    .nav-link.active{font-weight:600}
+    .nav-focus{
+      position:absolute;
+      top:50%;left:0;
+      height:34px;width:72px;
+      transform:translate(0,-50%);
+      border-radius:999px;
+      background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.58));
+      border:1px solid rgba(255,255,255,.88);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,.025),
+        0 7px 20px rgba(0,113,227,.10),
+        0 0 24px rgba(92,160,255,.16),
+        inset 0 1px 0 rgba(255,255,255,.95);
+      backdrop-filter:blur(16px) saturate(170%);
+      -webkit-backdrop-filter:blur(16px) saturate(170%);
+      transition:
+        transform .42s cubic-bezier(.2,.75,.2,1),
+        width .42s cubic-bezier(.2,.75,.2,1),
+        opacity .22s ease;
+      pointer-events:none;
+      opacity:.95;
+      z-index:1;
+    }
+    .site-nav:not(.scrolled) .nav-focus{
+      background:rgba(245,245,247,.72);
+      border-color:rgba(0,0,0,.035);
+      box-shadow:0 5px 18px rgba(0,0,0,.05);
+    }
+
+    .hero{
+      min-height:94vh;
+      display:grid;
+      place-items:center;
+      padding:120px 24px 80px;
+      position:relative;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      width:min(70vw,980px);height:min(70vw,980px);
+      left:50%;top:55%;transform:translate(-50%,-50%);
+      background:
+        radial-gradient(circle at 35% 35%, rgba(111,168,255,.30), transparent 34%),
+        radial-gradient(circle at 68% 42%, rgba(196,157,255,.24), transparent 33%),
+        radial-gradient(circle at 50% 70%, rgba(117,218,205,.18), transparent 35%);
+      filter:blur(44px);
+      opacity:.72;
+      pointer-events:none;
+    }
+
+    .hero-content{position:relative;z-index:1;text-align:center;max-width:1040px}
+    .hero-kicker{font-size:18px;line-height:1.3;font-weight:600;letter-spacing:-.015em;color:#6e6e73}
+    .hero-title{
+      margin:18px auto 0;
+      font-size:clamp(3.3rem,8.2vw,7.6rem);
+      line-height:.91;
+      letter-spacing:-.065em;
+      font-weight:700;
+      max-width:1100px;
+    }
+    .hero-title .gradient-text{
+      background:linear-gradient(90deg,#0a63d8 0%,#7a5cff 48%,#009d8a 100%);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .hero-lead{
+      max-width:740px;margin:30px auto 0;
+      color:#6e6e73;font-size:clamp(1.12rem,2vw,1.4rem);line-height:1.45;
+      letter-spacing:-.02em;font-weight:500;
+    }
+    .hero-cta{
+      margin-top:32px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;
+    }
+    .link-blue{color:var(--blue);font-size:17px;font-weight:500;text-decoration:none}
+    .link-blue:hover{text-decoration:underline}
+    .link-blue .arrow{display:inline-block;margin-left:5px;transition:transform .2s ease}
+    .link-blue:hover .arrow{transform:translateX(3px)}
+
+    .section{padding:118px 24px}
+    .section.soft{background:var(--soft)}
+    .wrap{max-width:1120px;margin:0 auto}
+    .section-header{max-width:860px}
+    .section-label{font-size:15px;font-weight:600;color:#6e6e73;letter-spacing:-.01em}
+    .section-title{
+      margin-top:12px;
+      font-size:clamp(2.5rem,5vw,5rem);
+      line-height:.98;
+      letter-spacing:-.055em;
+      font-weight:700;
+    }
+    .section-copy{
+      margin-top:24px;max-width:720px;color:#6e6e73;
+      font-size:clamp(1.08rem,1.7vw,1.28rem);line-height:1.5;letter-spacing:-.016em;font-weight:500;
+    }
+
+    .reveal{
+      opacity:0;transform:translateY(28px) scale(.99);
+      transition:opacity .72s cubic-bezier(.2,.65,.3,1),transform .72s cubic-bezier(.2,.65,.3,1);
+    }
+    .reveal.in{opacity:1;transform:none}
+
+    /* Process */
+    .process-shell{margin-top:66px;display:grid;gap:20px}
+    .process-card{
+      min-height:330px;
+      display:grid;grid-template-columns:180px 1fr;gap:40px;
+      padding:56px 58px;
+      border-radius:var(--radius);
+      background:#fff;
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow:0 1px 2px rgba(0,0,0,.02);
+      overflow:hidden;
+      position:relative;
+    }
+    .process-card.dark{background:#000;color:#fff;border-color:#000}
+    .process-card.blue{background:linear-gradient(135deg,#eaf4ff 0%,#f7fbff 62%,#edf7f5 100%)}
+    .process-card.violet{background:linear-gradient(135deg,#f2eeff 0%,#fbfaff 60%,#f2f7ff 100%)}
+    .process-card.gray{background:#f5f5f7}
+    .process-num{
+      font-size:clamp(4rem,8vw,7rem);line-height:.8;font-weight:700;letter-spacing:-.065em;color:#c7c7cc;
+    }
+    .dark .process-num{color:#333}
+    .process-content{align-self:center;max-width:720px}
+    .process-title{font-size:clamp(2rem,3.4vw,3.35rem);line-height:1.02;letter-spacing:-.045em;font-weight:700}
+    .process-text{margin-top:18px;font-size:18px;line-height:1.55;letter-spacing:-.015em;color:#6e6e73;font-weight:500}
+    .dark .process-text{color:#a1a1a6}
+
+    /* Infrastructure */
+    .infra-grid{margin-top:64px;display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
+    .big-card,.small-card{
+      border-radius:var(--radius);overflow:hidden;position:relative;
+    }
+    .big-card{
+      min-height:560px;padding:54px;background:#000;color:#fff;
+      display:flex;flex-direction:column;justify-content:space-between;
+    }
+    .big-card::after{
+      content:"";position:absolute;width:430px;height:430px;right:-100px;bottom:-120px;border-radius:50%;
+      background:radial-gradient(circle at 35% 35%,#4aa8ff,transparent 48%),radial-gradient(circle at 70% 64%,#7b61ff,transparent 50%);
+      filter:blur(10px);opacity:.72;
+    }
+    .big-card > *{position:relative;z-index:1}
+    .big-card h3{font-size:clamp(2.35rem,4.6vw,4.6rem);line-height:.98;letter-spacing:-.055em;font-weight:700;max-width:680px}
+    .big-card p{max-width:590px;color:#b4b4b8;font-size:19px;line-height:1.55;font-weight:500}
+    .mini-stack{display:grid;gap:22px}
+    .small-card{min-height:269px;padding:38px;background:#f5f5f7}
+    .small-card.white{background:#fff;border:1px solid #e8e8ed}
+    .small-card .tag{font-size:14px;font-weight:600;color:#6e6e73}
+    .small-card h4{margin-top:14px;font-size:28px;line-height:1.08;letter-spacing:-.035em;font-weight:700}
+    .small-card p{margin-top:14px;font-size:16px;line-height:1.5;color:#6e6e73;font-weight:500}
+
+    /* Importance */
+    .importance-grid{margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .importance-card{
+      min-height:300px;border-radius:28px;background:#f5f5f7;padding:34px 32px;
+      transition:transform .28s ease,box-shadow .28s ease,background .28s ease;
+    }
+    .importance-card:hover{transform:translateY(-6px);box-shadow:0 18px 45px rgba(0,0,0,.08);background:#fff}
+    .importance-index{font-size:13px;font-weight:600;color:#86868b}
+    .importance-icon{
+      margin-top:34px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+      background:#1d1d1f;color:#fff;font-size:19px;font-weight:700;
+    }
+    .importance-card h3{margin-top:24px;font-size:24px;line-height:1.08;letter-spacing:-.035em;font-weight:700}
+    .importance-card p{margin-top:14px;color:#6e6e73;font-size:15.5px;line-height:1.55;font-weight:500}
+
+    /* Closing */
+    .closing{
+      background:#000;color:#fff;text-align:center;padding:128px 24px;
+    }
+    .closing h2{max-width:980px;margin:0 auto;font-size:clamp(3rem,6.4vw,6.6rem);line-height:.94;letter-spacing:-.06em;font-weight:700}
+    .closing p{max-width:760px;margin:28px auto 0;color:#a1a1a6;font-size:clamp(1.1rem,2vw,1.35rem);line-height:1.5;font-weight:500}
+    .closing a{display:inline-block;margin-top:32px}
+
+    footer{background:#f5f5f7;padding:26px 24px;color:#6e6e73;font-size:12px}
+    .footer-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid #d2d2d7;padding-top:18px}
+
+    .mobile-menu{
+      position:fixed;top:68px;left:16px;right:16px;z-index:79;
+      background:rgba(255,255,255,.78);
+      backdrop-filter:saturate(180%) blur(22px);
+      -webkit-backdrop-filter:saturate(180%) blur(22px);
+      max-height:0;opacity:0;overflow:hidden;
+      transition:max-height .28s ease,opacity .2s ease,transform .28s ease;
+      transform:translateY(-8px);
+      border:1px solid rgba(255,255,255,.72);
+      border-radius:24px;
+      box-shadow:0 18px 50px rgba(0,0,0,.12);
+    }
+    .mobile-menu.open{max-height:350px;opacity:1;transform:translateY(0)}
+
+
+    .nav-inner{
+      max-width:1120px;height:52px;margin:0 auto;padding:0 22px;
+      display:flex;align-items:center;justify-content:space-between;
+      background:transparent;border:1px solid transparent;border-radius:0;
+    }
+    .brand{font-size:16px;font-weight:600;letter-spacing:-.01em;color:#000;text-decoration:none}
+    .desktop-nav{display:flex;align-items:center;gap:30px;position:relative}
+    .nav-link{display:flex;align-items:center;font-size:15px;font-weight:500;letter-spacing:-.01em;text-decoration:none;padding:8px 10px}
+    .menu-button{display:none;width:32px;height:32px;border:0;background:transparent;align-items:center;justify-content:center;padding:0;cursor:pointer}
+    .menu-icon{position:relative;display:block;width:20px;height:16px}
+    .menu-line{position:absolute;left:0;width:20px;height:1px;background:#000;transition:transform .2s ease}
+    .line-one{top:4px}.line-two{top:11px}
+    .mobile-menu{display:none}
+    .mobile-menu-inner{max-width:1120px;margin:0 auto;padding:20px 24px}
+    .mobile-links{display:grid;gap:4px;font-size:20px;font-weight:600;letter-spacing:-.02em}
+    .mobile-links a{padding:8px 0;color:#1d1d1f;text-decoration:none}
+    .dark-tag{font-size:14px;font-weight:600;color:rgba(255,255,255,.55)}
+    .footer-title{font-weight:600;color:#1d1d1f}
+    @media(max-width:900px){
+      .desktop-nav{display:none}
+      .menu-button{display:flex}
+      .mobile-menu{display:block}
+      .process-card{grid-template-columns:1fr;gap:26px;padding:42px 34px;min-height:auto}
+      .process-num{font-size:64px}
+      .infra-grid{grid-template-columns:1fr}
+      .big-card{min-height:470px;padding:42px 34px}
+      .importance-grid{grid-template-columns:repeat(2,1fr)}
+    }
+
+    @media(max-width:640px){
+      .site-nav{height:72px}
+      .site-nav.scrolled .nav-inner{margin-left:12px;margin-right:12px;padding-left:16px;padding-right:14px}
+      .hero{min-height:90vh;padding-top:96px}
+      .hero-title{font-size:clamp(3rem,16vw,4.5rem)}
+      .section{padding:88px 20px}
+      .process-shell{margin-top:46px}
+      .process-card{padding:34px 26px;border-radius:26px}
+      .infra-grid,.importance-grid{margin-top:46px}
+      .big-card,.small-card{border-radius:26px}
+      .big-card{min-height:430px;padding:34px 26px}
+      .small-card{min-height:auto;padding:30px 26px}
+      .importance-grid{grid-template-columns:1fr}
+      .importance-card{min-height:auto;padding:30px 26px}
+      .footer-inner{flex-direction:column;align-items:flex-start}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+      .reveal{opacity:1;transform:none}
+    }
+  </style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <header class="site-nav">
+    <div class="nav-inner">
+      <a href="#inicio" class="brand">Laboratorio 4 · GRTIC</a>
+
+      <nav class="desktop-nav" aria-label="Navegación principal">
+        <span class="nav-focus" aria-hidden="true"></span>
+        <a class="nav-link active" data-nav="inicio" href="#inicio">Inicio</a>
+        <a class="nav-link" data-nav="proceso" href="#proceso">Proceso</a>
+        <a class="nav-link" data-nav="infraestructura" href="#infraestructura">Infraestructura</a>
+        <a class="nav-link" data-nav="importancia" href="#importancia">Importancia</a>
+      </nav>
+
+      <button id="menuBtn" class="menu-button" aria-label="Abrir menú" aria-expanded="false">
+        <span class="menu-icon">
+          <span class="menu-line line-one"></span>
+          <span class="menu-line line-two"></span>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <div id="mobileMenu" class="mobile-menu">
+    <div class="mobile-menu-inner">
+      <div class="mobile-links">
+        <a href="#inicio">Inicio</a>
+        <a href="#proceso">Proceso</a>
+        <a href="#infraestructura">Infraestructura</a>
+        <a href="#importancia">Importancia</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section id="inicio" data-section class="hero">
+      <div class="hero-content reveal">
+        <p class="hero-kicker">Gerencia de Recursos de Tecnología de Información y Comunicación</p>
+        <h1 class="hero-title">La tecnología funciona mejor cuando <span class="gradient-text">se gestiona bien.</span></h1>
+        <p class="hero-lead">Planificar, diseñar, implementar y evaluar permite que la infraestructura TIC responda a las necesidades reales de una empresa.</p>
+        <div class="hero-cta">
+          <a class="link-blue" href="#proceso">Ver el proceso <span class="arrow">›</span></a>
+          <a class="link-blue" href="#importancia">Por qué es importante <span class="arrow">›</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="proceso" data-section class="section soft">
+      <div class="wrap">
+        <div class="section-header reveal">
+          <p class="section-label">El proceso</p>
+          <h2 class="section-title">Cuatro etapas. Una misma dirección.</h2>
+          <p class="section-copy">La gestión de la infraestructura TIC se puede entender como un proceso continuo. Cada etapa prepara la siguiente y ayuda a tomar decisiones con más orden.</p>
+        </div>
+
+        <div class="process-shell">
+          <article class="process-card blue reveal">
+            <div class="process-num">01</div>
+            <div class="process-content">
+              <h3 class="process-title">Planificación</h3>
+              <p class="process-text">Antes de comprar, instalar o cambiar tecnología, se revisan las necesidades de la empresa, las prioridades y los recursos disponibles.</p>
+            </div>
+          </article>
+
+          <article class="process-card violet reveal">
+            <div class="process-num">02</div>
+            <div class="process-content">
+              <h3 class="process-title">Diseño</h3>
+              <p class="process-text">Aquí se define cómo se organizarán los recursos tecnológicos y qué soluciones se ajustan mejor a los procesos de la empresa.</p>
+            </div>
+          </article>
+
+          <article class="process-card dark reveal">
+            <div class="process-num">03</div>
+            <div class="process-content">
+              <h3 class="process-title">Implementación</h3>
+              <p class="process-text">Se pone en marcha lo planificado: se instalan equipos, se configuran soluciones y se integran al trabajo diario.</p>
+            </div>
+          </article>
+
+          <article class="process-card gray reveal">
+            <div class="process-num">04</div>
+            <div class="process-content">
+              <h3 class="process-title">Evaluación</h3>
+              <p class="process-text">Se revisa si la infraestructura funciona como se esperaba, qué problemas aparecen y qué ajustes conviene realizar.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="infraestructura" data-section class="section">
+      <div class="wrap">
+        <div class="section-header reveal">
+          <p class="section-label">Infraestructura TIC</p>
+          <h2 class="section-title">Instalar tecnología es solo el comienzo.</h2>
+          <p class="section-copy">La infraestructura debe mantenerse, revisarse y adaptarse. Una empresa necesita saber qué tiene, cómo se está utilizando y cuándo debe hacer cambios.</p>
+        </div>
+
+        <div class="infra-grid">
+          <article class="big-card reveal">
+            <div>
+              <p class="dark-tag">Gestión continua</p>
+              <h3 class="mt-4">Tecnología útil, segura y preparada para cambiar.</h3>
+            </div>
+            <p>El seguimiento ayuda a detectar fallas, aprovechar mejor los recursos y mantener la infraestructura alineada con las necesidades de la empresa.</p>
+          </article>
+
+          <div class="mini-stack">
+            <article class="small-card reveal">
+              <p class="tag">Primero</p>
+              <h4>Definir qué hace falta.</h4>
+              <p>Se identifican los recursos necesarios y la forma en que deben organizarse.</p>
+            </article>
+            <article class="small-card white reveal">
+              <p class="tag">Después</p>
+              <h4>Revisar y ajustar.</h4>
+              <p>Se comprueba el funcionamiento, se detectan problemas y se corrige lo necesario.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="importancia" data-section class="section soft">
+      <div class="wrap">
+        <div class="section-header reveal">
+          <p class="section-label">Por qué importa</p>
+          <h2 class="section-title">Seis áreas que una buena gestión no puede ignorar.</h2>
+          <p class="section-copy">La gestión de la infraestructura TIC no depende de un solo elemento. Equipos, seguridad, personas y sistemas forman parte del mismo entorno.</p>
+        </div>
+
+        <div class="importance-grid">
+          <article class="importance-card reveal">
+            <span class="importance-index">01</span>
+            <div class="importance-icon">H</div>
+            <h3>Hardware y software</h3>
+            <p>Los equipos y programas deben mantenerse organizados, actualizados y acordes con las necesidades reales de la empresa.</p>
+          </article>
+
+          <article class="importance-card reveal">
+            <span class="importance-index">02</span>
+            <div class="importance-icon">M</div>
+            <h3>Monitoreo y optimización</h3>
+            <p>Revisar el rendimiento permite detectar fallas, uso innecesario de recursos y oportunidades de mejora.</p>
+          </article>
+
+          <article class="importance-card reveal">
+            <span class="importance-index">03</span>
+            <div class="importance-icon">S</div>
+            <h3>Seguridad tecnológica</h3>
+            <p>La infraestructura debe proteger sistemas, servicios e información frente a accesos no autorizados, pérdidas y otras amenazas.</p>
+          </article>
+
+          <article class="importance-card reveal">
+            <span class="importance-index">04</span>
+            <div class="importance-icon">C</div>
+            <h3>Capacitación continua</h3>
+            <p>Las personas necesitan actualizar sus conocimientos para utilizar correctamente las herramientas y aplicar buenas prácticas de seguridad.</p>
+          </article>
+
+          <article class="importance-card reveal">
+            <span class="importance-index">05</span>
+            <div class="importance-icon">I</div>
+            <h3>Integración tecnológica</h3>
+            <p>Integrar sistemas y procesos ayuda a que la información circule mejor y evita trabajar con recursos aislados.</p>
+          </article>
+
+          <article class="importance-card reveal">
+            <span class="importance-index">06</span>
+            <div class="importance-icon">E</div>
+            <h3>Ética y uso responsable</h3>
+            <p>El uso de la tecnología debe respetar la información, las normas y a las personas, con criterios claros sobre su uso responsable.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="reveal">
+        <h2>La tecnología necesita gestión para seguir siendo útil.</h2>
+        <p>Planificar, diseñar, implementar y evaluar ayuda a mantener los recursos tecnológicos seguros, organizados y acordes con las necesidades de la empresa.</p>
+        <a class="link-blue" href="#inicio">Volver al inicio <span class="arrow">↑</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-title">Laboratorio #4 · GRTIC</p>
+      <p>Gerencia de Recursos de Tecnología de Información y Comunicación</p>
+    </div>
+  </footer>
+
+  <script>
+    const progress = document.getElementById('progress');
+    const siteNav = document.querySelector('.site-nav');
+    const navLinks = [...document.querySelectorAll('[data-nav]')];
+    const desktopNav = document.querySelector('.desktop-nav');
+    const navFocus = document.querySelector('.nav-focus');
+    const sections = [...document.querySelectorAll('[data-section]')];
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    function updateProgress(){
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const value = max > 0 ? (window.scrollY / max) * 100 : 0;
+      progress.style.width = value + '%';
+      siteNav.classList.toggle('scrolled', window.scrollY > 28);
+    }
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, {passive:true});
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    function moveNavFocus(target){
+      if(!target || !navFocus || !desktopNav) return;
+      const navRect = desktopNav.getBoundingClientRect();
+      const linkRect = target.getBoundingClientRect();
+      const x = linkRect.left - navRect.left;
+      navFocus.style.width = linkRect.width + 'px';
+      navFocus.style.transform = `translate(${x}px,-50%)`;
+    }
+
+    const initialActive = navLinks.find(link => link.classList.contains('active'));
+    requestAnimationFrame(() => moveNavFocus(initialActive));
+    window.addEventListener('resize', () => {
+      moveNavFocus(navLinks.find(link => link.classList.contains('active')));
+    });
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if(!entry.isIntersecting) return;
+        navLinks.forEach(link => link.classList.toggle('active', link.dataset.nav === entry.target.id));
+        moveNavFocus(navLinks.find(link => link.dataset.nav === entry.target.id));
+      });
+    }, {rootMargin:'-42% 0px -52% 0px', threshold:0});
+    sections.forEach(section => sectionObserver.observe(section));
+
+    let menuOpen = false;
+    function setMenu(open){
+      menuOpen = open;
+      mobileMenu.classList.toggle('open', open);
+      menuBtn.setAttribute('aria-expanded', String(open));
+      const lines = menuBtn.querySelectorAll('.menu-line');
+      lines[0].style.transform = open ? 'translateY(3.5px) rotate(45deg)' : '';
+      lines[1].style.transform = open ? 'translateY(-3.5px) rotate(-45deg)' : '';
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    menuBtn.addEventListener('click', () => setMenu(!menuOpen));
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  </script>
+</body>
+</html>
